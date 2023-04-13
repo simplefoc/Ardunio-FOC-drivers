@@ -1,11 +1,58 @@
 #include "CalibratedSensor.h"
 
+// Return char array with key name for calibration data
+void get_key(const char* name, char* key)
+{
+    sprintf(key, "cal_%s", name);
+}
+
+void writeCalibrationData(calibration_data_t &data, const char* name)
+{
+
+    // Open preferences with namespace "calibration"
+    Preferences preferences;
+    preferences.begin("cal", false);
+
+    // Get key name
+    char key[32];
+    get_key(name, key);
+
+    // Write data to preferences
+    preferences.putBytes(key, &data.raw, sizeof(data));
+
+    // Close preferences
+    preferences.end();
+}
+
+calibration_data_t readCalibrationData(const char* name)
+{
+    calibration_data_t data;
+    data.direction = 0;
+
+    // Open preferences with namespace "calibration"
+    Preferences preferences;
+    preferences.begin("cal", false);
+
+    // Get key name
+    char key[32];
+    get_key(name, key);
+
+    // Read data from preferences
+    preferences.getBytes(key, &data.raw, sizeof(data));
+
+    // Close preferences
+    preferences.end();
+
+    return data;
+}
+
 
 // CalibratedSensor()
 // sensor              - instance of original sensor object
-CalibratedSensor::CalibratedSensor(Sensor& wrapped) : _wrapped(wrapped) 
+CalibratedSensor::CalibratedSensor(Sensor& wrapped) : _wrapped(wrapped)
 {
 };
+
 
 
 CalibratedSensor::~CalibratedSensor()
@@ -30,36 +77,36 @@ float CalibratedSensor::getSensorAngle(){
     // raw encoder position e.g. 0-2PI
     float rawAngle = _wrapped.getMechanicalAngle();
 
-    // index of the bucket that rawAngle is part of. 
+    // index of the bucket that rawAngle is part of.
     // e.g. rawAngle = 0 --> bucketIndex = 0.
     // e.g. rawAngle = 2PI --> bucketIndex = 128.
     int bucketIndex = floor(rawAngle/(_2PI/n_lut));
     float remainder = rawAngle - ((_2PI/n_lut)*bucketIndex);
 
     // Extract the lower and upper LUT value in counts
-    float y0 = calibrationLut[bucketIndex]; 
-    float y1 = calibrationLut[(bucketIndex+1)%n_lut]; 
+    float y0 = calibrationLut[bucketIndex];
+    float y1 = calibrationLut[(bucketIndex+1)%n_lut];
 
     // Linear Interpolation Between LUT values y0 and y1 using the remainder
     // If remainder = 0, interpolated offset = y0
     // If remainder = 2PI/n_lut, interpolated offset = y1
-    float interpolatedOffset = (((_2PI/n_lut)-remainder)/(_2PI/n_lut))*y0 + (remainder/(_2PI/n_lut))*y1; 
+    float interpolatedOffset = (((_2PI/n_lut)-remainder)/(_2PI/n_lut))*y0 + (remainder/(_2PI/n_lut))*y1;
 
     // add offset to the raw sensor count. Divide multiply by 2PI/CPR to get radians
-    float calibratedAngle = rawAngle+interpolatedOffset; 
+    float calibratedAngle = rawAngle+interpolatedOffset;
 
     // return calibrated angle in radians
     return calibratedAngle;
 }
 
-void CalibratedSensor::calibrate(BLDCMotor& motor){
-    
+void CalibratedSensor::calibrate(BLDCMotor& motor, const char* name){
+
     Serial.println("Starting Sensor Calibration.");
 
     int _NPP = motor.pole_pairs;                                    // number of pole pairs which is user input
     const int n_ticks = 128*_NPP;                                   // number of positions to be sampled per mechanical rotation.  Multiple of NPP for filtering reasons (see later)
     const int n2_ticks = 40;                                        // increments between saved samples (for smoothing motion)
-    float deltaElectricalAngle = _2PI*_NPP/(n_ticks*n2_ticks);      // Electrical Angle increments for calibration steps    
+    float deltaElectricalAngle = _2PI*_NPP/(n_ticks*n2_ticks);      // Electrical Angle increments for calibration steps
     float* error_f  = new float[n_ticks]();                         // pointer to error array rotating forwards
   //  float* raw_f = new float[n_ticks]();                            // pointer to raw forward position
     float* error_b  = new float[n_ticks]();                         // pointer to error array rotating forwards
@@ -68,7 +115,7 @@ void CalibratedSensor::calibrate(BLDCMotor& motor){
     float* error_filt = new float[n_ticks]();                       // pointer to filtered error array (low pass filter)
     const int window = 128;                                         // window size for moving average filter of raw error
     motor.zero_electric_angle = 0;                                  // Set position sensor offset
-    
+
     // find natural direction (this is copy of the init code)
     // move one electrical revolution forward
     for (int i = 0; i <=500; i++ ) {
@@ -112,26 +159,26 @@ void CalibratedSensor::calibrate(BLDCMotor& motor){
     _wrapped.update();
     float theta_init = _wrapped.getAngle();
     float theta_absolute_init = _wrapped.getMechanicalAngle();
-    
-    /* 
+
+    /*
     Start Calibration
     Loop over  electrical angles from 0 to NPP*2PI, once forward, once backward
     store actual position and error as compared to electrical angle
     */
 
-	/* 
+	/*
 	forwards rotation
 	*/
 	Serial.println("Rotating forwards");
 	int k = 0;
 	for(int i = 0; i<n_ticks; i++)
-	{                                                 
+	{
 		for(int j = 0; j<n2_ticks; j++)
-			{   
+			{
 				elec_angle += deltaElectricalAngle;
 				motor.setPhaseVoltage(voltage_calibration, 0, elec_angle);
 			}
-		
+
 		// delay to settle in position before taking a position sample
 		_delay(20);
 		_wrapped.update();
@@ -157,17 +204,17 @@ void CalibratedSensor::calibrate(BLDCMotor& motor){
 				k += 1;
 			}
 	}
-	
+
 	_delay(2000);
 
-	/* 
+	/*
 	backwards rotation
 	*/
 	Serial.println("Rotating backwards");
 	for(int i = 0; i<n_ticks; i++)
-	{                                                 
+	{
 		for(int j = 0; j<n2_ticks; j++)
-			{   
+			{
 				elec_angle -= deltaElectricalAngle;
 				motor.setPhaseVoltage(voltage_calibration, 0 ,elec_angle);
 			}
@@ -196,13 +243,13 @@ void CalibratedSensor::calibrate(BLDCMotor& motor){
 	motor.setPhaseVoltage(0, 0, 0);
 
 	// raw offset from initial position in absolute radians between 0-2PI
-	float raw_offset = (theta_absolute_init+theta_absolute_post)/2;                   
+	float raw_offset = (theta_absolute_init+theta_absolute_post)/2;
 
 	// calculating the average zero electrica angle from the forward calibration.
 	motor.zero_electric_angle  = avg_elec_angle/_NPP;
 	Serial.print( "Average Zero Electrical Angle: ");
-	Serial.println( motor.zero_electric_angle); 
-	
+	Serial.println( motor.zero_electric_angle);
+
 	// Perform filtering to linearize position sensor eccentricity
 	// FIR n-sample average, where n = number of samples in one electrical cycle
 	// This filter has zero gain at electrical frequency and all integer multiples
@@ -227,9 +274,9 @@ void CalibratedSensor::calibrate(BLDCMotor& motor){
 	int index_offset = floor(raw_offset/(_2PI/n_lut));
 
 	// Build Look Up Table
-	for (int i = 0; i<n_lut; i++){                                          
+	for (int i = 0; i<n_lut; i++){
 		int ind =  index_offset + i*directionSensor;
-		if(ind > (n_lut-1)){ 
+		if(ind > (n_lut-1)){
 			ind -= n_lut;
 		}
 		if(ind < 0 ){
@@ -241,7 +288,7 @@ void CalibratedSensor::calibrate(BLDCMotor& motor){
 		//Serial.println(calibrationLut[ind],5);
 		_delay(1);
 	}
-   
+
    // de-allocate memory
     delete error_filt;
     delete error;
@@ -252,6 +299,50 @@ void CalibratedSensor::calibrate(BLDCMotor& motor){
 
     Serial.println("Sensor Calibration Done.");
 
+    // Create a calibration data object
+    calibration_data_t calib_data;
+    calib_data.zero_electric_angle = motor.zero_electric_angle;
+    for (int i = 0; i < n_lut; i++) {
+        calib_data.calibration_lut[i] = calibrationLut[i];
+    }
+
+    calib_data.direction = motor.sensor_direction;
+
+    // Save calibration data to EEPROM
+    writeCalibrationData(calib_data, name);
+
 }
 
+bool CalibratedSensor::loadCalibrationData(BLDCMotor& motor, const char* name)
+{
+    calibration_data_t loaded_data = readCalibrationData(name);
+    // Direction should be 1 or -1
+    // If it is not, then the data is invalid
+    if (loaded_data.direction != 1 && loaded_data.direction != -1) {
+        return false;
+    }
+    else {
+        // Load zero elecrtical angle and sensor direction into motor object
+        motor.zero_electric_angle = loaded_data.zero_electric_angle;
+        motor.sensor_direction = loaded_data.direction;
 
+        // Log to serial
+        Serial.println("Loaded calibration data from EEPROM:");
+        Serial.print("zero_electric_angle: ");
+        Serial.println(loaded_data.zero_electric_angle);
+        Serial.print("direction: ");
+        if (loaded_data.direction == 1) {
+            Serial.println("CW");
+        }
+        else {
+            Serial.println("CCW");
+        }
+
+        // Load calibration LUT into motor object
+        for (int i = 0; i < n_lut; i++) {
+            calibrationLut[i] = loaded_data.calibration_lut[i];
+        }
+
+        return true;
+    }
+}
