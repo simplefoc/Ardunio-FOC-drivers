@@ -27,7 +27,7 @@ void writeCalibrationData(calibration_data_t &data, const char* name)
 calibration_data_t readCalibrationData(const char* name)
 {
     calibration_data_t data;
-    data.direction = 0;
+    data.direction = Direction::UNKNOWN;
 
     // Open preferences with namespace "calibration"
     Preferences preferences;
@@ -316,9 +316,10 @@ void CalibratedSensor::calibrate(BLDCMotor& motor, const char* name){
 bool CalibratedSensor::loadCalibrationData(BLDCMotor& motor, const char* name)
 {
     calibration_data_t loaded_data = readCalibrationData(name);
-    // Direction should be 1 or -1
+    // Direction should be CW or CCW
     // If it is not, then the data is invalid
-    if (loaded_data.direction != 1 && loaded_data.direction != -1) {
+    if (loaded_data.direction != Direction::CCW &&
+        loaded_data.direction != Direction::CW) {
         return false;
     }
     else {
@@ -331,7 +332,7 @@ bool CalibratedSensor::loadCalibrationData(BLDCMotor& motor, const char* name)
         Serial.print("zero_electric_angle: ");
         Serial.println(loaded_data.zero_electric_angle);
         Serial.print("direction: ");
-        if (loaded_data.direction == 1) {
+        if (loaded_data.direction == Direction::CW) {
             Serial.println("CW");
         }
         else {

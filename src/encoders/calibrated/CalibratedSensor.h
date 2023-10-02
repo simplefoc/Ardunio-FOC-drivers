@@ -17,7 +17,7 @@ typedef union {
         // Eccentricity LUT
         float calibration_lut[128];
 
-        int direction;
+        Direction direction;
     };
 
     uint8_t raw[CALIBRATION_DATA_LEN];
