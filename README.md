@@ -10,13 +10,12 @@ The intent is to keep the core of SimpleFOC clean, and thus easy to maintain, un
 
 ## New Release
 
-v1.0.8 - Released July 2024, for Simple FOC 2.3.4 or later
+v1.0.9 - Released xxx 2024, for Simple FOC 2.3.x or later
 
 
-What's changed since 1.0.7?
-- MA735 driver thanks to [@techyrobot](https://github.com/techy-robot)
-- ESP32HWEncoder driver thanks to [@mcells](https://github.com/mcells)
-- Bugfixes [included](https://github.com/simplefoc/Arduino-FOC-drivers/issues?q=milestone%3A1.0.8+)
+What's changed since 1.0.8?
+- AS5600 driver bugfix thanks to [@zbas](https://github.com/zbas)
+- Bugfixes [included](https://github.com/simplefoc/Arduino-FOC-drivers/issues?q=milestone%3A1.0.9)
 
 
 ## What is included
@@ -116,6 +115,11 @@ Find out more information about the Arduino SimpleFOC project on the [docs websi
 
 ## Release History
 
+What's changed since 1.0.7?
+- MA735 driver thanks to [@techyrobot](https://github.com/techy-robot)
+- ESP32HWEncoder driver thanks to [@mcells](https://github.com/mcells)
+- Bugfixes [included](https://github.com/simplefoc/Arduino-FOC-drivers/issues?q=milestone%3A1.0.8)
+
 What's changed since 1.0.6?
 - Improvements to LinearHall driver, thanks to dekutree
 - Fix for ESP32 compiler warning, thanks to Yannik Stradmann
@@ -126,14 +130,14 @@ What's changed since 1.0.6?
 - Refactored settings storage code
 - Refactored I2CCommander
 - New utility class for simple trapezoidal motion profiles
-- Bugfixes [included](https://github.com/simplefoc/Arduino-FOC-drivers/issues?q=milestone%3A1.0.7+)
+- Bugfixes [included](https://github.com/simplefoc/Arduino-FOC-drivers/issues?q=milestone%3A1.0.7)
 
 What's changed since 1.0.5?
 - Added STSPIN32G4 driver
 - Added STM32G4 CORDIC code, for greatly accellerated trig functions on supported MCUs
 - Added STM32FlashSettingsStorage driver, supporting STM32G4 MCUs
 - Improvements in the MT6835 sensor driver
-- Bugfixes [included](https://github.com/simplefoc/Arduino-FOC-drivers/issues?q=is%3Aissue+milestone%3A1.0.6+)
+- Bugfixes [included](https://github.com/simplefoc/Arduino-FOC-drivers/issues?q=is%3Aissue+milestone%3A1.0.6)
 
 What's changed since 1.0.4?
 - Added smoothing sensor by [@dekutree64](https://github.com/dekutree64)
@@ -143,7 +147,7 @@ What's changed since 1.0.4?
 - New Settings driver: SAMDNVMSettingsStorage
 - SimpleFOCRegisters abstraction, mapping SimpleFOC parameters to virtual "Registers"
 - Updated I2CCommander to use the new registers abstraction
-- Bugfixes [included](https://github.com/simplefoc/Arduino-FOC-drivers/issues?q=is%3Aissue+milestone%3A1.0.5+)
+- Bugfixes [included](https://github.com/simplefoc/Arduino-FOC-drivers/issues?q=is%3Aissue+milestone%3A1.0.5)
 
 What's changed since 1.0.3?
 - New Comms/Input: STM32SpeedDirCommander
