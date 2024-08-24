@@ -13,6 +13,6 @@ void MagneticSensorAS5600::init(TwoWire* wire) {
 
 
 float MagneticSensorAS5600::getSensorAngle() {
-    uint16_t raw = readRawAngle();
+    uint16_t raw = angle();
     return raw / AS5600_CPR * _2PI;
 };
