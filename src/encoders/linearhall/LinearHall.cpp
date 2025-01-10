@@ -13,6 +13,8 @@ LinearHall::LinearHall(int _hallA, int _hallB, int _pp){
   pinA = _hallA;
   pinB = _hallB;
   pp = _pp;
+  electrical_rev = 0;
+  prev_reading = 0;
 }
 
 float LinearHall::getSensorAngle() {
@@ -84,7 +86,7 @@ void LinearHall::init(FOCMotor *motor) {
   // move one mechanical revolution forward
   for (int i = 0; i <= 2000; i++)
   {
-    float angle = _3PI_2 + _2PI * i * pp / 2000.0f;
+    float angle = _3PI_2 + _2PI * i * motor->pole_pairs / pp / 2000.0f;
     motor->setPhaseVoltage(motor->voltage_sensor_align, 0, angle);
 
     ReadLinearHalls(pinA, pinB, &lastA, &lastB);

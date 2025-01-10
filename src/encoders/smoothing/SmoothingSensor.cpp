@@ -1,12 +1,16 @@
 #include "SmoothingSensor.h"
 #include "common/foc_utils.h"
 #include "common/time_utils.h"
+#include "sensors/HallSensor.h"
 
 
 SmoothingSensor::SmoothingSensor(Sensor& s, const FOCMotor& m) : _wrapped(s), _motor(m)
 {
 }
 
+SmoothingSensor::SmoothingSensor(HallSensor& s, const FOCMotor& m) : _wrapped(s), _motor(m) {
+  phase_correction = -_PI_6;
+}
 
 void SmoothingSensor::update() {
   // Update sensor, with optional downsampling of update rate
@@ -27,8 +31,8 @@ void SmoothingSensor::update() {
 
   // Apply phase correction if needed
   if (phase_correction != 0) {
-    if (_motor.shaft_velocity < -0) angle_prev -= _motor.sensor_direction * phase_correction / _motor.pole_pairs;
-    else if (_motor.shaft_velocity > 0) angle_prev += _motor.sensor_direction * phase_correction / _motor.pole_pairs;
+    if (_motor.shaft_velocity < -0.001) angle_prev -= _motor.sensor_direction * phase_correction / _motor.pole_pairs;
+    else if (_motor.shaft_velocity > 0.001) angle_prev += _motor.sensor_direction * phase_correction / _motor.pole_pairs;
   }
 
   // Handle wraparound of the projected angle

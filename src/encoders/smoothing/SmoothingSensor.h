@@ -22,6 +22,7 @@ class SmoothingSensor : public Sensor
     @param m  Motor that the SmoothingSensor will be linked to
     */
     SmoothingSensor(Sensor& s, const FOCMotor& m);
+    SmoothingSensor(class HallSensor& s, const FOCMotor& m); // Automatically sets phase_correction
 
     void update() override;
     float getVelocity() override;
