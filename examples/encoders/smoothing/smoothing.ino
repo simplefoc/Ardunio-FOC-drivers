@@ -1,6 +1,9 @@
 /**
  *
- * Hall sensor velocity motion control example, modified to demonstrate usage of SmoothingSensor
+ * Hall sensor velocity motion control example, modified to demonstrate usage of SmoothingSensor. 
+ * The only changes are the declaration of the SmoothingSensor, passing it to motor.linkSensor 
+ * instead of the HallSensor instance, and the added Commander code to switch between the two.
+ *
  * Steps:
  * 1) Configure the motor and sensor
  * 2) Run the code
@@ -63,8 +66,6 @@ void setup() {
   sensor.enableInterrupts(doA, doB); //, doC);
   // software interrupts
   PciManager.registerListener(&listenerIndex);
-  // set SmoothingSensor phase correction for hall sensors
-  smooth.phase_correction = -_PI_6;
   // link the SmoothingSensor to the motor
   motor.linkSensor(&smooth);
 
