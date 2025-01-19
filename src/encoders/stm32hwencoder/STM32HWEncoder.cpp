@@ -5,7 +5,7 @@
 /*
   HardwareEncoder(int cpr)
 */
-STM32HWEncoder::STM32HWEncoder(unsigned int _ppr, int8_t pinA, int8_t pinB, int8_t pinI) {
+STM32HWEncoder::STM32HWEncoder(unsigned int _ppr, int pinA, int pinB, int pinI) {
     cpr = _ppr * 4; // 4x for quadrature
     _pinA = digitalPinToPinName(pinA);
     _pinB = digitalPinToPinName(pinB);
